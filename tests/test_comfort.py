@@ -122,7 +122,7 @@ async def test_select_setup_preserves_quiet_presets_and_adds_comfort():
     add = Mock()
     await setup_selects(Mock(), entry, add)
     entities = add.call_args.args[0]
-    assert len(entities) == 3
+    assert len(entities) == 4
     assert isinstance(entities[-1], DhwComfortPreference)
 
 
