@@ -12,6 +12,7 @@ import secrets
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 import aiohttp
@@ -321,6 +322,19 @@ class WeheatApi:
         if type(status) is not int or status not in range(12):
             raise WeheatError("Unrecognized settings request status")
         return status
+
+    async def dhw_schedules(self, installation_id: str, start: datetime, end: datetime) -> Json:
+        """Read-only Intelligence hot-water plan, as the app requests it (from/to in UTC ISO)."""
+        from urllib.parse import quote
+
+        def iso(moment: datetime) -> str:
+            return moment.astimezone(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+        return await self.request(
+            "GET",
+            f"/installations/{quote(installation_id, safe='')}/dhw-schedules"
+            f"?from={quote(iso(start), safe='')}&to={quote(iso(end), safe='')}",
+        )
 
     async def request_queue_empty(self, board_id: str) -> bool:
         """Require an explicitly empty, complete first page; never infer from absence."""

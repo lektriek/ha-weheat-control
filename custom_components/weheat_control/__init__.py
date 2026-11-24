@@ -11,6 +11,7 @@ from homeassistant.helpers.typing import ConfigType
 from .api import AuthenticationError, Tokens, WeheatApi
 from .const import DOMAIN, TOKENS
 from .coordinator import WeheatCoordinator
+from .plan import WeheatPlanCoordinator
 from .services import async_register_services
 
 PLATFORMS = [Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.TIME]
@@ -35,6 +36,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeheatConfigEntry) -> bo
     coordinator = WeheatCoordinator(hass, entry, api)
     await coordinator.async_load_operation()
     await coordinator.async_config_entry_first_refresh()
+    # The Intelligence plan is optional, read-only and polled separately; never block setup on it.
+    coordinator.plan = WeheatPlanCoordinator(hass, coordinator, api)
+    await coordinator.plan.async_refresh()
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

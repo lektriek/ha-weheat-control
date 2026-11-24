@@ -97,6 +97,9 @@ complete the reauthentication flow offered by Home Assistant.
 | Action `weheat_control.set_dhw_schedule` | Replace the periods of one or more weekdays (quarter hours, 40–60 °C in 0.5 °C steps); always submits the complete week; does not change the hot-water mode |
 | Hot-water Intelligence comfort | Normal or Eco, as in the app (safety temperature 40 or 10 °C plus the app's comfort code); available only in Intelligence mode |
 | Heating-curve points | 18–60 °C, in 1 °C steps, for Heating curve and On/off thermostat control methods |
+| Hot-water Intelligence plan | Read-only. *Planned heating*, *Planned legionella* or *Standby*; its history is a coloured timeline |
+| Hot-water Intelligence plan yesterday / today / tomorrow | Planned heating moments per day, e.g. `22:00–00:00, 03:15–05:15`; *Not yet published* until Weheat publishes tomorrow's plan (observed around 16:00) |
+| Hot-water Intelligence next planned heating | Start of the next planned moment |
 | Hot-water target readback | Requested target temperature, not measured water temperature |
 | Hot-water boost end | Reported boost end time |
 | Heating control method and curve | Current method and curve values |
@@ -140,6 +143,35 @@ the complete current schedule, and is refused when the schedule has no periods.
 app's Intelligence toggle; **Fixed temperature** sends only mode 0. Selecting the
 mode that is already active sends nothing. All schedule and mode writes use the same request
 journal, no-retry protection and exact readback verification as other controls.
+
+### Hot-water Intelligence plan
+
+In Intelligence mode the integration reads the plan the app shows under
+*Insights*, every 15 minutes, for yesterday through tomorrow
+(`GET /installations/{id}/dhw-schedules`). It is read-only and never changes a
+setting. Each planned moment lasts from its start for the plan's hold time
+(currently two hours). The plan sensor switches exactly at those boundaries, so
+Home Assistant's history shows the plan as coloured blocks and keeps it for as
+long as your recorder keeps history. History starts when the integration is
+installed; earlier days cannot be filled in.
+
+To spot extra, unplanned heating, put the plan next to the actual heat-pump
+state from the official Weheat integration in a History card:
+
+```yaml
+type: history-graph
+hours_to_show: 48
+entities:
+  - entity: sensor.weheat_<installation>_hot_water_intelligence_plan
+  - entity: sensor.<your official weheat heat pump state sensor>
+```
+
+The plan's `reported_target_temperature` attribute is the `targetTemperatureC`
+value the plan reports. Its meaning is not established and it can differ from
+the hot-water temperature you see elsewhere, so it is not a sensor of its own.
+Weheat publishes the next day's plan in the afternoon (observed around 16:00);
+until then the tomorrow sensor shows *Not yet published*, which is different from
+*No planned heating*. Outside Intelligence mode the plan sensors are unavailable.
 
 ### Operating-mode restrictions
 

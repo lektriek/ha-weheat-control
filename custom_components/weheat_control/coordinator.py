@@ -62,6 +62,7 @@ class WeheatCoordinator(DataUpdateCoordinator[Settings]):
         self.operation: dict[str, Json] = {}
         self._store = OperationJournal(hass, entry.entry_id)
         self._write_lock = asyncio.Lock()
+        self.plan: DataUpdateCoordinator | None = None  # set by setup: WeheatPlanCoordinator
 
     async def async_load_operation(self) -> None:
         saved = await self._store.async_load()

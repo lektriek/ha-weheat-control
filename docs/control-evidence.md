@@ -133,6 +133,25 @@ enabling on explicit system suitability and condensation-risk acceptance;
 #32278 likewise requires risk consent for cooling-curve edits. No unguarded
 switch, installer/protection override or guessed restore behavior is added.
 
+## Intelligence hot-water plan (read-only)
+
+APK 4.5.14 (same SHA-256 as above), Hermes bytecode decompiled with
+`hermes-dec`: `getDhwSchedules({installationId, from, to})` issues
+`GET /installations/{installationId}/dhw-schedules` with `from`/`to` as UTC ISO
+timestamps; the Insights screen queries per local day (`useBatchedRangeQuery`,
+key `dhw-schedules`). `parsePlanWindows` iterates `cycles`, skips cycles without
+`startAt`, splits on `isLegionella`, and draws each window as `startAt` plus
+`averageCycleHoldTimeMinutes` (legionella or fallback: `holdTimeMinutes`).
+A live read (2026-11-18) returned one item per planned day with
+`scheduleStartAt`, `targetTemperatureC` (52.9), `holdTimeMinutes` and
+`averageCycleHoldTimeMinutes` (120), `cycles` (one with `startAt: null`), cost
+fields (null) and 96-slot `costCoefficients`/`baselineDhwProbabilities`. No item
+was returned yet for the next day at midday. The app separately colours executed,
+unplanned and boost moments from heat-pump logs; the integration only exposes the
+plan and leaves actual state to the official integration. `targetTemperatureC`
+is exposed as an attribute only: the owner observed actual targets of about
+49–50 °C, so its meaning is not established.
+
 ## Implemented controls
 
 | Control | Read → write | Recovered app behavior / source |

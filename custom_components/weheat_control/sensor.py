@@ -1,16 +1,19 @@
 """Readback and durable settings request status."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.const import EntityCategory, UnitOfTemperature
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_point_in_utc_time
+from homeassistant.util import dt as dt_util
 
 from . import WeheatConfigEntry
 from .controls import CONTROL_METHODS, DAYS, dhw_schedule_available, dhw_schedule_periods, dhw_schedule_read_key
 from .coordinator import WeheatCoordinator
 from .entity import WeheatEntity
+from .plan import HEATING, LEGIONELLA, STANDBY, Plan, PlanWindow
 
 
 async def async_setup_entry(
@@ -26,6 +29,16 @@ async def async_setup_entry(
             *(DhwScheduleSensor(entry.runtime_data, day) for day in DAYS),
         ]
     )
+    if entry.runtime_data.plan is not None:
+        async_add_entities(
+            [
+                DhwPlanStateSensor(entry.runtime_data),
+                DhwPlanDaySensor(entry.runtime_data, -1, "Yesterday"),
+                DhwPlanDaySensor(entry.runtime_data, 0, "Today"),
+                DhwPlanDaySensor(entry.runtime_data, 1, "Tomorrow"),
+                DhwPlanNextSensor(entry.runtime_data),
+            ]
+        )
 
 
 class DhwScheduleSensor(WeheatEntity, SensorEntity):
@@ -195,3 +208,158 @@ class BoostEndSensor(WeheatEntity, SensorEntity):
         except ValueError, OverflowError, OSError:
             pass
         return None
+
+
+class _PlanEntity(WeheatEntity, SensorEntity):
+    """Read-only Intelligence plan entity that also updates at plan/day boundaries."""
+
+    _attr_icon = "mdi:calendar-clock"
+
+    def __init__(self, coordinator: WeheatCoordinator, key: str) -> None:
+        super().__init__(coordinator.plan, key)  # type: ignore[arg-type]
+        self._unsub_timer: CALLBACK_TYPE | None = None
+
+    @property
+    def plan(self) -> Plan | None:
+        data = self.coordinator.data
+        return data if isinstance(data, Plan) and data.active else None
+
+    @property
+    def available(self) -> bool:
+        return super().available and self.plan is not None
+
+    def _next_change(self, now: datetime) -> datetime | None:
+        return dt_util.start_of_local_day(dt_util.as_local(dt_util.utcnow())) + timedelta(days=1)
+
+    @callback
+    def _schedule(self) -> None:
+        if self._unsub_timer:
+            self._unsub_timer()
+            self._unsub_timer = None
+        if self.hass is None:
+            return
+        moment = self._next_change(dt_util.utcnow())
+        if moment is not None:
+            self._unsub_timer = async_track_point_in_utc_time(self.hass, self._at_boundary, moment)
+
+    @callback
+    def _at_boundary(self, _now: datetime) -> None:
+        self._unsub_timer = None
+        self.async_write_ha_state()
+        self._schedule()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        super()._handle_coordinator_update()
+        self._schedule()
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._schedule()
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub_timer:
+            self._unsub_timer()
+            self._unsub_timer = None
+        await super().async_will_remove_from_hass()
+
+
+class DhwPlanStateSensor(_PlanEntity):
+    """Current planned activity; its recorded history is a coloured timeline in HA."""
+
+    _attr_name = "Hot-water Intelligence plan"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_translation_key = "dhw_plan"
+    _attr_options = [HEATING, LEGIONELLA, STANDBY]
+
+    def __init__(self, coordinator: WeheatCoordinator) -> None:
+        super().__init__(coordinator, "dhw_plan")
+
+    def _next_change(self, now: datetime) -> datetime | None:
+        plan = self.plan
+        return plan.next_boundary(now) if plan else None
+
+    @property
+    def native_value(self) -> str | None:
+        plan = self.plan
+        return plan.state_at(dt_util.utcnow()) if plan else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        plan = self.plan
+        if plan is None:
+            return {}
+        now = dt_util.utcnow()
+        return {
+            "windows": [window.as_dict() for window in plan.windows],
+            # Reported by the plan; not established to be the heat pump's actual setpoint.
+            "reported_target_temperature": plan.target_temperatures.get(dt_util.as_local(now).date().isoformat()),
+        }
+
+
+class DhwPlanDaySensor(_PlanEntity):
+    """Planned heating moments of yesterday, today or tomorrow (device-local time)."""
+
+    def __init__(self, coordinator: WeheatCoordinator, offset: int, label: str) -> None:
+        super().__init__(coordinator, f"dhw_plan_{label.lower()}")
+        self._offset = offset
+        self._attr_name = f"Hot-water Intelligence plan {label.lower()}"
+
+    def _day(self) -> datetime:
+        return dt_util.start_of_local_day(dt_util.as_local(dt_util.utcnow())) + timedelta(days=self._offset, hours=12)
+
+    def _windows(self) -> list[PlanWindow] | None:
+        plan = self.plan
+        if plan is None:
+            return None
+        return plan.windows_on(self._day())
+
+    @property
+    def native_value(self) -> str | None:
+        windows = self._windows()
+        if windows is None:
+            return None
+        if not windows:
+            plan = self.plan
+            if plan is not None and not plan.has_day(self._day()):
+                # Weheat has not sent a plan for this day (yet): not the same as "no heating".
+                return "Not yet published" if self._offset > 0 else "No plan available"
+            return "No planned heating"
+        summary = ", ".join(window.label() for window in windows)
+        return summary if len(summary) <= 255 else f"{len(windows)} planned moments"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        windows = self._windows()
+        plan = self.plan
+        if windows is None or plan is None:
+            return {}
+        day = (
+            (dt_util.start_of_local_day(dt_util.as_local(dt_util.utcnow())) + timedelta(days=self._offset))
+            .date()
+            .isoformat()
+        )
+        return {
+            "date": day,
+            "windows": [window.as_dict() for window in windows],
+            "reported_target_temperature": plan.target_temperatures.get(day),
+        }
+
+
+class DhwPlanNextSensor(_PlanEntity):
+    _attr_name = "Hot-water Intelligence next planned heating"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(self, coordinator: WeheatCoordinator) -> None:
+        super().__init__(coordinator, "dhw_plan_next")
+
+    def _next_change(self, now: datetime) -> datetime | None:
+        plan = self.plan
+        window = plan.next_start(now) if plan else None
+        return window.start if window else None
+
+    @property
+    def native_value(self) -> datetime | None:
+        plan = self.plan
+        window = plan.next_start(dt_util.utcnow()) if plan else None
+        return window.start if window else None
