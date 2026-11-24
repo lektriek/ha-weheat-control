@@ -111,7 +111,7 @@ switch, installer/protection override or guessed restore behavior is added.
 
 | Control | Read → write | Recovered app behavior / source |
 | --- | --- | --- |
-| DHW boost | `dhwBoostEndTime` → `DhwBoostEndTime` | String Unix seconds for writes; #21094 (on), #21049 (off). ISO timestamp observed in live read. Buttons request 30/60 minutes or stop. |
+| DHW boost | `dhwBoostEndTime` → `DhwBoostEndTime` | String Unix seconds for writes; #21094 (on), #21049 (off). ISO timestamp observed in live read. Buttons request 30/60/90/120 minutes (the app's choices) or stop; the write gate allows at most 7200 s ahead. |
 | DHW target | `dhwTargetTemperature` → `DhwTargetTemperature` | 40–60 °C, integer steps. Available only with DHW present and mode `dhwScheduleEnabled=0` (fixed). Never switch out of Intelligence/schedule automatically. |
 | DHW Intelligence comfort | `dhwScheduleSafetyTemperature` + overview `installationSystem.dhwComfortPreference` → `DhwScheduleSafetyTemperature` + `properties.DhwComfortPreference` | Normal=40/6, Eco=10/5, observed in the current app. Both halves in one request and both verified. Requires Intelligence mode. |
 | Day quiet | `performanceModePreset` → `PerformanceModePreset` | #32805:23–43, #32837:22–59, #32827:20–28. Values 0 Normal, 1 Background chatter, 2 Light rain, 3 Library, 4 Whisper. |
