@@ -63,16 +63,40 @@ not included in the default HACS catalog.
 
 ## Setup
 
-1. Open the **Weheat login** link shown in the setup dialog.
-2. Sign in with your Weheat account in the browser.
-3. At the browser's open-app prompt, copy the **complete `weheat://auth` callback
-   URL** without opening the app, and paste it into the setup dialog.
-4. Select your installation if prompted. A single eligible installation is
+Login uses the same flow as the official Weheat Android app, on any platform.
+At the end, Weheat redirects the browser to a `weheat://auth?...` callback URL.
+**That page never loads, and that is expected:** the integration only needs the
+URL itself. Copying it from the browser's network tools is the most reliable way
+to get it.
+
+1. Open the **Weheat login** link shown in the setup dialog in a desktop
+   browser. Chrome, Edge and other Chromium browsers work best.
+2. Before signing in, open the developer tools (<kbd>F12</kbd>, or
+   <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> /
+   <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd>) and select the **Network** tab.
+3. Sign in with your Weheat account.
+4. The browser now tries to open a `weheat://auth?...` URL. Depending on the
+   browser you see an open-app prompt, a blank page, an error, or the login
+   button seems to do nothing. In all cases, find the request to
+   `weheat://auth` in the **Network** tab (filter on `weheat`) and copy its
+   **complete URL**, including everything after `?`. If the browser shows the
+   URL in an open-app prompt or the address bar instead, you can copy it from
+   there; do not open the app.
+5. Paste the complete callback URL into the setup dialog and submit.
+6. Select your installation if prompted. A single eligible installation is
    selected automatically.
 
-Some browsers do not expose the callback link. If you cannot copy it, try
-another browser. If login fails, use the new link shown by the setup dialog;
-callback URLs are one-use and must belong to the current login attempt.
+Tips if login does not work:
+
+- **Empty page when opening the link, or nothing happens after signing in:**
+  this is normally the `weheat://` redirect failing to load. Look for the
+  callback URL in the **Network** tab as described above.
+- **No `weheat://` request in the Network tab:** make sure the Network tab was
+  open *before* you signed in, and that *Preserve log* is enabled. Firefox is
+  known to be less reliable here; try a Chromium-based browser.
+- **The callback URL is rejected:** callback URLs are one-use and belong to the
+  current login attempt. Use the new login link shown in the setup dialog,
+  sign in again, and paste the new URL immediately.
 
 Setup and polling do not change device settings. **Supported controls are ready
 immediately after login; using one sends a real settings request.** There is no
@@ -226,7 +250,7 @@ state updates.
 | Symptom | What to check |
 | --- | --- |
 | A temperature control is unavailable | Check the operating-mode restrictions above and your current mode in the official app. |
-| Login fails | Start with the new login link and paste its complete callback URL. Never share that URL. |
+| Login fails, or the login page stays empty | The `weheat://auth` page never loads; copy its complete URL from the browser's developer tools **Network** tab (see [Setup](#setup)). Start with the new login link for every attempt. Never share that URL. |
 | Discovery fails during setup | Retry the installation step; the setup flow retains the exchanged login. |
 | A command remains unresolved or has an uncertain outcome | Check the official app and **Settings request status**. Further commands are blocked, even after a restart, to prevent accidental repeats. Do not delete storage or retry blindly. Use the official app if an urgent change is needed. |
 | Status shows a mismatch | The reported settings differ from the request; this is not verified success. |
