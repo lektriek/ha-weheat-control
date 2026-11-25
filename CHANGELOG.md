@@ -7,6 +7,11 @@ notes of its GitHub release, which HACS shows when offering the update.
 
 ## [Unreleased]
 
+### Changed
+
+- The README introduces Lektriek, who makes this integration available.
+- Release notes on GitHub no longer break lines in the middle of an item.
+
 ## [0.2.0] - 2026-11-25
 
 ### Added

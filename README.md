@@ -346,3 +346,11 @@ release already exists, and the notes don't come from the changelog.
 
 [ha-weheat-insights](https://github.com/lektriek/ha-weheat-insights) uses the
 same process, script and workflow.
+
+## Made by Lektriek
+
+Weheat Control is made available for free by Lektriek, an electrician who
+can also help you with other automation in your home: a smart home with
+Home Assistant, Shelly or HomeWizard that doesn't depend on the cloud,
+connecting a home battery, or a smart charge point that charges on cheap
+hours or solar power. See [lektriek.nl](https://lektriek.nl/).
