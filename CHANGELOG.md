@@ -7,6 +7,10 @@ notes of its GitHub release, which HACS shows when offering the update.
 
 ## [Unreleased]
 
+### Added
+
+- MIT license, with the permission of the original author.
+
 ## [0.2.1] - 2026-11-25
 
 ### Changed

@@ -354,3 +354,7 @@ can also help you with other automation in your home: a smart home with
 Home Assistant, Shelly or HomeWizard that doesn't depend on the cloud,
 connecting a home battery, or a smart charge point that charges on cheap
 hours or solar power. See [lektriek.nl](https://lektriek.nl/).
+
+## License
+
+[MIT](LICENSE)
