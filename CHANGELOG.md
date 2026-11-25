@@ -7,6 +7,8 @@ notes of its GitHub release, which HACS shows when offering the update.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-25
+
 ### Added
 
 - Hot-water boost buttons for 90 and 120 minutes.
@@ -32,5 +34,6 @@ notes of its GitHub release, which HACS shows when offering the update.
 First version, by Tim Feskens at
 [timfeskens/weheat-control](https://github.com/timfeskens/weheat-control).
 
-[Unreleased]: https://github.com/lektriek/ha-weheat-control/compare/a82f4fb...HEAD
+[Unreleased]: https://github.com/lektriek/ha-weheat-control/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/lektriek/ha-weheat-control/compare/a82f4fb...v0.2.0
 [0.1.0]: https://github.com/timfeskens/weheat-control/tree/a82f4fb
