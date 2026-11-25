@@ -4,13 +4,18 @@ Unofficial Home Assistant integration for Weheat heat pumps, available as a
 HACS custom repository. Control hot-water boost, quiet presets and schedules,
 and supported temperature settings directly from Home Assistant.
 
-[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=timfeskens&repository=weheat-control&category=integration)
-[![Checks](https://github.com/timfeskens/weheat-control/actions/workflows/check.yml/badge.svg)](https://github.com/timfeskens/weheat-control/actions/workflows/check.yml)
+[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=lektriek&repository=ha-weheat-control&category=integration)
+[![Checks](https://github.com/lektriek/ha-weheat-control/actions/workflows/check.yml/badge.svg)](https://github.com/lektriek/ha-weheat-control/actions/workflows/check.yml)
 
 > **Experimental:** installation and cloud reads have been verified in a running
 > Home Assistant instance; not every control has been tested against a real device.
 > Do not rely on this integration for unattended control. This project is not
 > affiliated with or supported by Weheat.
+
+This project started as [timfeskens/weheat-control](https://github.com/timfeskens/weheat-control)
+by Tim Feskens and is now maintained here, with permission. If you added
+the old repository to HACS, remove it and add this one. Changes per version are
+listed in the [changelog](CHANGELOG.md).
 
 ## Use alongside the official Weheat integration
 
@@ -48,7 +53,7 @@ target reported by the official integration. Existing entity IDs are preserved.
 4. Go to **Settings → Devices & services → Add integration** and search for
    **Weheat Control**.
 
-If the button does not work, add `https://github.com/timfeskens/weheat-control`
+If the button does not work, add `https://github.com/lektriek/ha-weheat-control`
 under **HACS → Custom repositories**, selecting **Integration** as the category.
 Then download the integration and restart Home Assistant. This repository is
 not included in the default HACS catalog.
@@ -287,7 +292,7 @@ ordering, use a dashboard with the day and scheduled-night preset controls
 together and the 14 schedule times in a separate section. Existing entity IDs
 do not need to change.
 
-For help, [open an issue](https://github.com/timfeskens/weheat-control/issues)
+For help, [open an issue](https://github.com/lektriek/ha-weheat-control/issues)
 with your Home Assistant version, heat-pump model, operating mode, and sanitized
 error details. Integration diagnostics omit tokens and device identifiers.
 
@@ -318,3 +323,26 @@ the development dependencies use the minimum supported version. These offline
 checks do not replace testing setup and controls in a running instance.
 API contracts, recovered app mappings, and known
 limitations are documented in [control evidence](docs/control-evidence.md).
+
+### Releasing
+
+Versions follow [semantic versioning](https://semver.org/). HACS and the Home
+Assistant Marketplace offer a new version only when it is published as a GitHub
+release, and show the release notes when offering the update.
+
+1. While working, add each user-visible change under **Unreleased** in
+   [CHANGELOG.md](CHANGELOG.md), as *Added*, *Changed*, *Fixed* or *Removed*.
+2. To release, run `scripts/release.py 1.2.0` on an up-to-date `main`. It sets
+   the version in `manifest.json`, dates the changelog section, commits
+   `Release 1.2.0` and tags `v1.2.0`. It pushes nothing.
+3. Push the commit and tag with the command it prints. The **Release**
+   workflow checks that the tag matches the manifest and publishes the GitHub
+   release with that version's changelog section as notes.
+
+A version with a suffix, such as `1.3.0-beta.1`, becomes a pre-release; HACS
+only offers it to users who switched on *Show beta versions*. Don't create
+releases in the GitHub web interface: the workflow then fails because the
+release already exists, and the notes don't come from the changelog.
+
+[ha-weheat-insights](https://github.com/lektriek/ha-weheat-insights) uses the
+same process, script and workflow.

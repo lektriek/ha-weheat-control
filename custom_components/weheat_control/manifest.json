@@ -1,12 +1,17 @@
 {
   "domain": "weheat_control",
   "name": "Weheat Control",
-  "version": "0.1.0",
+  "categories": [
+    "climate.heat_pumps_air_conditioning"
+  ],
+  "codeowners": [
+    "@frenkel"
+  ],
   "config_flow": true,
-  "documentation": "https://github.com/timfeskens/weheat-control",
-  "issue_tracker": "https://github.com/timfeskens/weheat-control/issues",
-  "codeowners": ["@timfeskens"],
-  "iot_class": "cloud_polling",
+  "documentation": "https://github.com/lektriek/ha-weheat-control",
   "integration_type": "hub",
-  "requirements": []
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/lektriek/ha-weheat-control/issues",
+  "requirements": [],
+  "version": "0.1.0"
 }
