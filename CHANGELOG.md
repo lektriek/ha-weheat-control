@@ -7,6 +7,8 @@ notes of its GitHub release, which HACS shows when offering the update.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-25
+
 ### Added
 
 - MIT license, with the permission of the original author.
@@ -45,7 +47,8 @@ notes of its GitHub release, which HACS shows when offering the update.
 First version, by Tim Feskens at
 [timfeskens/weheat-control](https://github.com/timfeskens/weheat-control).
 
-[Unreleased]: https://github.com/lektriek/ha-weheat-control/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/lektriek/ha-weheat-control/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/lektriek/ha-weheat-control/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/lektriek/ha-weheat-control/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/lektriek/ha-weheat-control/compare/a82f4fb...v0.2.0
 [0.1.0]: https://github.com/timfeskens/weheat-control/tree/a82f4fb
